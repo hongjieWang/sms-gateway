@@ -88,6 +88,29 @@ func (e SmsBusinessConfig) Get(c *gin.Context) {
 	e.OK(object, "查询成功")
 }
 
+func (e SmsBusinessConfig) GetByBusinessNo(c *gin.Context) {
+	req := dto.GetByBusinessNoReq{}
+	s := service.SmsBusinessConfig{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.Form).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	var object models.SmsBusinessConfig
+	err = s.GetByBusinessNo(req.BusinessNo, &object)
+	if err != nil {
+		e.Error(500, err, fmt.Sprintf("获取业务配置失败，\r\n失败信息 %s", err.Error()))
+		return
+	}
+
+	e.OK(object, "查询成功")
+}
+
 // Insert 创建业务配置
 // @Summary 创建业务配置
 // @Description 创建业务配置

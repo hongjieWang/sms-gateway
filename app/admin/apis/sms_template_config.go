@@ -87,6 +87,30 @@ func (e SmsTemplateConfig) Get(c *gin.Context) {
 	e.OK(object, "查询成功")
 }
 
+// GetByTemplateNo 根据短信模版查询数据
+func (e SmsTemplateConfig) GetByTemplateNo(c *gin.Context) {
+	req := dto.SmsTemplateConfigGetByTemplateNoReq{}
+	s := service.SmsTemplateConfig{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.Form).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	var object models.SmsTemplateConfig
+	err = s.GetByTemplateNo(req.TemplateNo, &object)
+	if err != nil {
+		e.Error(500, err, fmt.Sprintf("获取短信模版配置失败，\r\n失败信息 %s", err.Error()))
+		return
+	}
+
+	e.OK(object, "查询成功")
+}
+
 // Insert 创建短信模版配置
 // @Summary 创建短信模版配置
 // @Description 创建短信模版配置

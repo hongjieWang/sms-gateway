@@ -60,7 +60,7 @@ func (s *SmsSendMessage) installSendLog(response *sms.SendSmsResponse, business 
 			Status:      "1",
 			ExtJson:     string(b),
 		}
-		go s.updateAppNumber(business.AppNo, *resp.Fee)
+		s.updateAppNumber(business.AppNo, *resp.Fee)
 		err := s.Orm.Model(&data).Create(&model).Error
 		if err != nil {
 			s.Log.Errorf("SmsSendMessageService installSendLog error:%s \r\n", err)

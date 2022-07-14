@@ -57,6 +57,25 @@ func (e *SmsBusinessConfig) Get(d *dto.SmsBusinessConfigGetReq, p *actions.DataP
 	return nil
 }
 
+// GetByBusinessNo Get 获取SmsBusinessConfig对象
+func (e *SmsBusinessConfig) GetByBusinessNo(businessNo string, model *models.SmsBusinessConfig) error {
+	var data models.SmsBusinessConfig
+	err := e.Orm.Model(&data).Where(models.SmsBusinessConfig{
+		BusinessNo: businessNo,
+	}).
+		First(model).Error
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		err = errors.New("查看对象不存在或无权查看")
+		e.Log.Errorf("Service GetSmsBusinessConfig error:%s \r\n", err)
+		return err
+	}
+	if err != nil {
+		e.Log.Errorf("db error:%s", err)
+		return err
+	}
+	return nil
+}
+
 // Insert 创建SmsBusinessConfig对象
 func (e *SmsBusinessConfig) Insert(c *dto.SmsBusinessConfigInsertReq) error {
 	var err error

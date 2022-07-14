@@ -35,6 +35,11 @@ func (m *SmsTemplateConfigGetPageReq) GetNeedSearch() interface{} {
 	return *m
 }
 
+type SmsTemplateConfigGetByTemplateNoReq struct {
+	TemplateNo string `json:"templateNo" comment:"模版编号"`
+	common.ControlBy
+}
+
 type SmsTemplateConfigInsertReq struct {
 	Id                   int    `json:"-" comment:"主键"` // 主键
 	SignName             string `json:"signName" comment:"签名名称"`

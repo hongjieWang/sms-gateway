@@ -60,6 +60,26 @@ func (e *SmsTemplateConfig) Get(d *dto.SmsTemplateConfigGetReq, p *actions.DataP
 	return nil
 }
 
+// GetByTemplateNo 根据模版编号查询模版信息
+func (e *SmsTemplateConfig) GetByTemplateNo(templateNo string, model *models.SmsTemplateConfig) error {
+	var data models.SmsTemplateConfig
+	err := e.Orm.Model(&data).
+		Where(models.SmsTemplateConfig{
+			TemplateNo: templateNo,
+		}).
+		First(model).Error
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		err = errors.New("查看对象不存在或无权查看")
+		e.Log.Errorf("Service GetSmsTemplateConfig error:%s \r\n", err)
+		return err
+	}
+	if err != nil {
+		e.Log.Errorf("db error:%s", err)
+		return err
+	}
+	return nil
+}
+
 // Insert 创建SmsTemplateConfig对象
 func (e *SmsTemplateConfig) Insert(c *dto.SmsTemplateConfigInsertReq) error {
 	var err error
