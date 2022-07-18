@@ -5,6 +5,10 @@ go 1.15
 require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/alibaba/sentinel-golang v0.6.1
+	github.com/alibabacloud-go/darabonba-openapi v0.1.18
+	github.com/alibabacloud-go/dysmsapi-20170525/v2 v2.0.16
+	github.com/alibabacloud-go/tea v1.1.17
+	github.com/alibabacloud-go/tea-utils v1.4.5
 	github.com/aliyun/aliyun-oss-go-sdk v0.0.0-20190307165228-86c17b95fcd5
 	github.com/bitly/go-simplejson v0.5.0
 	github.com/bytedance/go-tagexpr/v2 v2.7.12
@@ -25,8 +29,7 @@ require (
 	github.com/swaggo/gin-swagger v1.2.0
 	github.com/swaggo/swag v1.6.7
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.440
-	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/cvm v1.0.440 // indirect
-	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.0.440 // indirect
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms v1.0.440
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/tdmq v1.0.330
 	github.com/unrolled/secure v1.0.8
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519

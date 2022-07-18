@@ -3,64 +3,72 @@ package service
 import (
 	"encoding/json"
 	api "github.com/qiniu/go-sdk/v7"
-	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
-	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
-	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
-	sms "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms/v20210111" // 引入sms
 	"go-admin/app/admin/models"
 	"go-admin/app/admin/service/dto"
+	"go-admin/app/sms/aliyun"
+	smsDto "go-admin/app/sms/dto"
+	"go-admin/app/sms/tencent"
 	"go-admin/common/service"
-	"regexp"
 	"strconv"
-	"strings"
 )
 
 type SmsSendMessage struct {
 	service.Service
 }
 
-func (s *SmsSendMessage) SendMessage(req *dto.SmsSendMessageReq) error {
+func (s *SmsSendMessage) SendMessage(req *dto.SmsSendMessageReq) (string, error) {
 	s.Log.Info(req)
 	var business models.SmsBusinessConfig
 	err := s.getBusinessNo(req.BusinessNo, &business)
 	number := s.getAppAvailableNumber(business.AppNo)
 	if number < 0 {
-		return api.NewError("500", "应用套餐不足")
+		return "应用套餐不足", api.NewError("500", "应用套餐不足")
 	}
 	var template models.SmsTemplateConfig
 	err = s.getTemplateNo(business.TemplateNo, &template)
 	var provider models.SmsServiceProviderConfig
 	err = s.getProviderNo(template.ProviderNo, &provider)
-	tencent, err := s.sendTencent(&provider, &template, req)
-	content := s.buildContent(template.TemplateContent, req)
-	template.TemplateContent = content
-	err = s.installSendLog(tencent, &business, &template)
-	if err != nil {
-		return err
+	var sendStatus smsDto.SmsResponse
+	if provider.ChannelNo == smsDto.Tencent {
+		t := tencent.Tencent{}
+		sendStatus, err = t.SendTencent(&provider, &template, req)
+		content := t.BuildContent(template.TemplateContent, req)
+		template.TemplateContent = content
+	} else if provider.ChannelNo == smsDto.AliYun {
+		yun := aliyun.AliYun{}
+		sendStatus, err = yun.SendSms(&provider, &template, req)
+		if err != nil {
+			return "", err
+		}
+		content := yun.BuildContent(template.TemplateContent, req)
+		template.TemplateContent = content
 	}
-	s.Log.Infof("a", tencent)
-	return nil
+	err = s.installSendLog(sendStatus, &business, &template)
+	if err != nil {
+		return err.Error(), err
+	}
+	marshal, _ := json.Marshal(sendStatus)
+	return string(marshal), nil
 }
 
 // 发送短信插入日志
-func (s *SmsSendMessage) installSendLog(response *sms.SendSmsResponse, business *models.SmsBusinessConfig, template *models.SmsTemplateConfig) error {
+func (s *SmsSendMessage) installSendLog(response smsDto.SmsResponse, business *models.SmsBusinessConfig, template *models.SmsTemplateConfig) error {
 	var data models.SmsSendLog
-
-	for _, resp := range response.Response.SendStatusSet {
-		b, _ := json.Marshal(*resp)
+	for _, resp := range response.SmsSendStatus {
+		b, _ := json.Marshal(resp)
 		model := models.SmsSendLog{
 			AppNo:       business.AppNo,
 			BusinessNo:  business.BusinessNo,
-			Code:        *resp.Code,
-			PhoneNumber: *resp.PhoneNumber,
-			Fee:         strconv.FormatUint(*resp.Fee, 10),
-			Message:     *resp.Message,
+			Code:        resp.Code,
+			PhoneNumber: resp.Phone,
+			Fee:         strconv.FormatUint(resp.Fee, 10),
+			Message:     resp.Message,
 			Content:     template.TemplateContent,
-			Remark:      *response.Response.RequestId,
+			Remark:      response.RequestId,
 			Status:      "1",
 			ExtJson:     string(b),
 		}
-		s.updateAppNumber(business.AppNo, *resp.Fee)
+		s.updateAppNumber(business.AppNo, resp.Fee)
 		err := s.Orm.Model(&data).Create(&model).Error
 		if err != nil {
 			s.Log.Errorf("SmsSendMessageService installSendLog error:%s \r\n", err)
@@ -68,15 +76,6 @@ func (s *SmsSendMessage) installSendLog(response *sms.SendSmsResponse, business 
 		}
 	}
 	return nil
-}
-
-func (s *SmsSendMessage) buildContent(content string, req *dto.SmsSendMessageReq) string {
-	r, _ := regexp.Compile("{(.)}")
-	allString := r.FindAllString(content, -1)
-	for i, s := range allString {
-		content = strings.Replace(content, s, req.Params[i], -1)
-	}
-	return content
 }
 
 //获取当前应用剩余短信数量
@@ -110,26 +109,6 @@ func (s *SmsSendMessage) updateAppNumber(appNo string, fee uint64) {
 }
 
 // 腾讯云发送短信
-func (s *SmsSendMessage) sendTencent(provider *models.SmsServiceProviderConfig, template *models.SmsTemplateConfig, req *dto.SmsSendMessageReq) (response *sms.SendSmsResponse, err error) {
-	credential := common.NewCredential(provider.AccessKeyId, provider.AccessKeySecret)
-	client, _ := sms.NewClient(credential, provider.Region, profile.NewClientProfile())
-	request := sms.NewSendSmsRequest()
-	request.SmsSdkAppId = common.StringPtr(provider.SdkAppId)
-	request.SignName = common.StringPtr(template.SignName)
-	request.TemplateId = common.StringPtr(template.ThirdPartyTemplateNo)
-	request.TemplateParamSet = common.StringPtrs(req.Params)
-	request.PhoneNumberSet = common.StringPtrs(req.Phones)
-	response, err = client.SendSms(request)
-	// 处理异常
-	if _, ok := err.(*errors.TencentCloudSDKError); ok {
-		return nil, err
-	}
-	// 非SDK异常，直接失败。实际代码中可以加入其他的处理。
-	if err != nil {
-		return nil, err
-	}
-	return response, nil
-}
 
 func (s *SmsSendMessage) getProviderNo(providerNo string, provider *models.SmsServiceProviderConfig) error {
 	var data models.SmsServiceProviderConfig

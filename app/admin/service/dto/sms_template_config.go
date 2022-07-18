@@ -36,7 +36,7 @@ func (m *SmsTemplateConfigGetPageReq) GetNeedSearch() interface{} {
 }
 
 type SmsTemplateConfigGetByTemplateNoReq struct {
-	TemplateNo string `json:"templateNo" comment:"模版编号"`
+	TemplateNo string `json:"templateNo"  form:"templateNo" comment:"模版编号"`
 	common.ControlBy
 }
 

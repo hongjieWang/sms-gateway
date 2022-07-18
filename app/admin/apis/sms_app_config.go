@@ -2,8 +2,6 @@ package apis
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin/binding"
-
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
@@ -105,7 +103,7 @@ func (e SmsAppConfig) Insert(c *gin.Context) {
 
 	err := e.MakeContext(c).
 		MakeOrm().
-		Bind(&req, binding.Form).
+		Bind(&req).
 		MakeService(&s.Service).MakeService(&seg.Service).
 		Errors
 	if err != nil {

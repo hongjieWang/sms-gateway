@@ -51,7 +51,9 @@ func (e SmsServiceProviderConfig) GetPage(c *gin.Context) {
 		e.Error(500, err, fmt.Sprintf("获取服务商配置 失败，\r\n失败信息 %s", err.Error()))
 		return
 	}
-
+	for i := range list {
+		list[i].AccessKeySecret = "**********************************"
+	}
 	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 

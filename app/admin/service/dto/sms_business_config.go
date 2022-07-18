@@ -104,7 +104,7 @@ type SmsBusinessConfigGetReq struct {
 
 // GetByBusinessNoReq 根据业务编号查询
 type GetByBusinessNoReq struct {
-	BusinessNo string `json:"businessNo" comment:"业务编号"`
+	BusinessNo string `json:"businessNo" form:"businessNo" comment:"业务编号"`
 }
 
 func (s *SmsBusinessConfigGetReq) GetId() interface{} {

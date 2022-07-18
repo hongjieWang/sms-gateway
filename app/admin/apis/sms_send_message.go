@@ -24,11 +24,11 @@ func (e *SmsSendMessage) SendMessage(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	err = s.SendMessage(&req)
+	message, _ := s.SendMessage(&req)
 	if err != nil {
 		e.Logger.Error(err)
 		e.Error(500, err, err.Error())
 		return
 	}
-	e.OK(200, "查询成功")
+	e.OK(200, message)
 }

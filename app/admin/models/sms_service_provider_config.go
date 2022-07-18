@@ -6,9 +6,9 @@ import (
 
 type SmsServiceProviderConfig struct {
 	models.Model
-
 	ProviderName    string `json:"providerName" gorm:"type:varchar(32);comment:服务商名称"`
 	ProviderNo      string `json:"providerNo" gorm:"type:varchar(32);comment:服务商编号"`
+	ChannelNo       string `json:"channelNo" gorm:"type:varchar(32);comment:短信渠道商"`
 	AccessKeyId     string `json:"accessKeyId" gorm:"type:varchar(64);comment:身份标识"`
 	AccessKeySecret string `json:"accessKeySecret" gorm:"type:varchar(64);comment:身份认证密钥"`
 	Endpoint        string `json:"endpoint" gorm:"type:varchar(255);comment:调用域名"`
