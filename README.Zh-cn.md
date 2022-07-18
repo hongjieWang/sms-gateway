@@ -1,287 +1,202 @@
-# go-admin
+# 短信网关总体设计
 
-  <img align="right" width="320" src="https://gitee.com/mydearzwj/image/raw/master/img/go-admin.svg">
+在消息系统中，短信网关和短信渠道的对接是最核心的功能。其中短信网关是对外提供服务的接口，所有需要发送短信的操作都需要通过短信网关分发到对应的渠道上。一旦定型，后续就很少，也很难调整。而短信渠道是接收网关的请求，调用渠道接口执行真正的发送短信操作。每个渠道的接口，传输方式都不尽相同，所以在这里，短信网关相对短信渠道模块的作用，类似设计模式模式中的wrapper，封装各个渠道的差异，对网关呈现统一的接口。而网关的功能就是为业务提供通用接口，一些和渠道交互的公共操作，也会放置到网关中。
 
+## 一、功能概述
 
-[![Build Status](https://github.com/wenjianzhang/go-admin/workflows/build/badge.svg)](https://github.com/go-admin-team/go-admin)
-[![Release](https://img.shields.io/github/release/go-admin-team/go-admin.svg?style=flat-square)](https://github.com/go-admin-team/go-admin/releases)
-[![License](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/go-admin-team/go-admin)
+消息系统对其他系统提供的服务包括渠道商管理、签名管理、短信模版管理、应用管理、业务类型管理、短信记录管理等。
 
-[English](https://github.com/go-admin-team/go-admin/blob/master/README.md) | 简体中文
+- 渠道商管理：短息网关维护多个渠道商，配置渠道商的身份ID、身份key等其他信息，支持的渠道商：腾讯云、阿里云等
+- 签名管理：配置渠道商下不同的短信签名，为后续发送短信提供数据基础。
+- 短信模版管理：配置不同短信模版信息，可在也业务配置中选择不同的模版信息，注：不同渠道模版略有不同，详情参见说明文档。
+- 应用管理：配置短信网关对接的应用信息，可在应用管理中配置应用可用短信条数、每分钟限制短信条数等信息，通过应用可用条数控制不同应用使用短信数量。
+- 业务管理：配置发送短信业务场景，如注册业务、登录业务、下单通知、支付成功通知等不同的业务信息。添加业务信息后，生成业务编号，业务系统根据业务编号发送短信模版。
 
-基于Gin + Vue + Element UI的前后端分离权限管理系统,系统初始化极度简单，只需要配置文件中，修改数据库连接，系统支持多指令操作，迁移指令可以让初始化数据库信息变得更简单，服务指令可以很简单的启动api服务
+## 二、整体架构
 
-[在线文档](https://doc.go-admin.dev)
+![smsGolang](https://img-1258527903.cos.ap-beijing.myqcloud.com/img/smsGolang.png)
 
-[github在线文档](https://wenjianzhang.github.io)
+## 三、管理平台
 
-[gitee在线文档](http://mydearzwj.gitee.io/go-admin-doc/)
+![杰子学编程-渠道商配置](https://img-1258527903.cos.ap-beijing.myqcloud.com/img/sms_service_provider_config.png)
 
-[前端项目](https://github.com/go-admin-team/go-admin-ui)
+![杰子学编程-添加渠道商](https://img-1258527903.cos.ap-beijing.myqcloud.com/img/sms_service_provider_config_add.png)
 
-[视频教程](https://space.bilibili.com/565616721/channel/detail?cid=125737)
+![杰子学编程-短信签名模版](https://img-1258527903.cos.ap-beijing.myqcloud.com/img/sms_sign_config.png)
 
-## ✨ 特性
+![杰子学编程-添加短信签名](https://img-1258527903.cos.ap-beijing.myqcloud.com/img/sms_sign_config_add.png)
 
-- 遵循 RESTful API 设计规范
+![杰子学编程-模版列表](https://img-1258527903.cos.ap-beijing.myqcloud.com/img/sms_template_config.png)
 
-- 基于 GIN WEB API 框架，提供了丰富的中间件支持（用户认证、跨域、访问日志、追踪ID等）
+![杰子学编程-添加短信模版](https://img-1258527903.cos.ap-beijing.myqcloud.com/img/sms_template_config_add.png)
 
-- 基于Casbin的 RBAC 访问控制模型
+![杰子学编程-应用管理](https://img-1258527903.cos.ap-beijing.myqcloud.com/img/sms_app_config.png)
 
-- JWT 认证
+![杰子学编程-添加应用](https://img-1258527903.cos.ap-beijing.myqcloud.com/img/sms_app_config_add.png)
 
-- 支持 Swagger 文档(基于swaggo)
+![杰子学编程-业务模版配置](https://img-1258527903.cos.ap-beijing.myqcloud.com/img/sms_business_config.png)
 
-- 基于 GORM 的数据库存储，可扩展多种类型数据库
+![杰子学编程-添加业务模版](https://img-1258527903.cos.ap-beijing.myqcloud.com/img/sms_business_config_add.png)
 
-- 配置文件简单的模型映射，快速能够得到想要的配置
+![杰子学编程-发送记录](https://img-1258527903.cos.ap-beijing.myqcloud.com/img/sms_send_log.png)
 
-- 代码生成工具
+![杰子学编程-发送短信测试页面](https://img-1258527903.cos.ap-beijing.myqcloud.com/img/sms_send_test_page.png)
 
-- 表单构建工具
+## 四、服务API
 
-- 多指令模式
+请求地址：/api/v1/send-message
 
-- 多租户的支持
+请求方式：POST
 
-- TODO: 单元测试
+请求参数：
 
-## 🎁 内置
+| 字段名称   | 字段说明     | 字段类型 | 是否必填 | 备注              |
+| ---------- | ------------ | -------- | -------- | ----------------- |
+| businessNo | 业务编号     | String   | 是       |                   |
+| phones     | 手机号集合   | List     | 是       | 多个手机号","分割 |
+| params     | 模版填充参数 | List     | 否       | 多个参数","分割   |
 
-1. 多租户：系统默认支持多租户，按库分离，一个库一个租户。
-1. 用户管理：用户是系统操作者，该功能主要完成系统用户配置。
-2. 部门管理：配置系统组织机构（公司、部门、小组），树结构展现支持数据权限。
-3. 岗位管理：配置系统用户所属担任职务。
-4. 菜单管理：配置系统菜单，操作权限，按钮权限标识，接口权限等。
-5. 角色管理：角色菜单权限分配、设置角色按机构进行数据范围权限划分。
-6. 字典管理：对系统中经常使用的一些较为固定的数据进行维护。
-7. 参数管理：对系统动态配置常用参数。
-8. 操作日志：系统正常操作日志记录和查询；系统异常信息日志记录和查询。
-9. 登录日志：系统登录日志记录查询包含登录异常。
-1. 接口文档：根据业务代码自动生成相关的api接口文档。
-1. 代码生成：根据数据表结构生成对应的增删改查相对应业务，全程可视化操作，让基本业务可以零代码实现。
-1. 表单构建：自定义页面样式，拖拉拽实现页面布局。
-1. 服务监控：查看一些服务器的基本信息。
-1. 内容管理：demo功能，下设分类管理、内容管理。可以参考使用方便快速入门。
-1. 定时任务：自动化任务，目前支持接口调用和函数调用。
+请求参数示例：
 
-## 准备工作
-
-你需要在本地安装 [go] [gin] [node](http://nodejs.org/) 和 [git](https://git-scm.com/) 
-
-同时配套了系列教程包含视频和文档，如何从下载完成到熟练使用，强烈建议大家先看完这些教程再来实践本项目！！！
-
-### 轻松实现go-admin写出第一个应用 - 文档教程
-
-[步骤一 - 基础内容介绍](https://doc.zhangwj.com/guide/intro/tutorial01.html)
-
-[步骤二 - 实际应用 - 编写增删改查](https://doc.zhangwj.com/guide/intro/tutorial02.html)
-
-### 手把手教你从入门到放弃 - 视频教程
-
-[如何启动go-admin](https://www.bilibili.com/video/BV1z5411x7JG)
-
-[使用生成工具轻松实现业务](https://www.bilibili.com/video/BV1Dg4y1i79D)
-
-[v1.1.0版本代码生成工具-释放双手](https://www.bilibili.com/video/BV1N54y1i71P) [进阶]
-
-[多命令启动方式讲解以及IDE配置](https://www.bilibili.com/video/BV1Fg4y1q7ph)
-
-[go-admin菜单的配置说明](https://www.bilibili.com/video/BV1Wp4y1D715) [必看]
-
-[如何配置菜单信息以及接口信息](https://www.bilibili.com/video/BV1zv411B7nG) [必看]
-
-[go-admin权限配置使用说明](https://www.bilibili.com/video/BV1rt4y197d3) [必看]
-
-[go-admin数据权限使用说明](https://www.bilibili.com/video/BV1LK4y1s71e) [必看]
-
-**如有问题请先看上述使用文档和文章，若不能满足，欢迎 issue 和 pr ，视频教程和文档持续更新中**
-
-## 📦 本地开发
-
-### 开发目录创建
-
-```bash
-
-# 创建开发目录
-mkdir goadmin
-cd goadmin
+```json
+{
+    "businessNo": "B-000003",
+    "phones": [
+        "+86182XXXXXX68"
+    ],
+    "params": ["123456"]
+}
 ```
 
-### 获取代码
+响应参数：
 
-> 重点注意：两个项目必须放在同一文件夹下；
+| 字段名称  | 字段说明     | 字段类型 | 是否必填 | 备注 |
+| --------- | ------------ | -------- | -------- | ---- |
+| requestId | requestId    | String   | 是       |      |
+| code      | 状态码       | Int      | 是       |      |
+| msg       | 渠道返回消息 | String   | 是       |      |
+| data      | 响应数据     | Int      | 否       |      |
 
-```bash
-# 获取后端代码
-git clone https://github.com/go-admin-team/go-admin.git
+响应参数示例：
 
-# 获取前端代码
-git clone https://github.com/go-admin-team/go-admin-ui.git
-
+```json
+{
+  "requestId": "b9c0fd5e-3a43-4039-a224-2a5ae99385e1",
+  "code": 200,
+  "msg": "{\"sms_send_status\":[{\"fee\":1,\"message\":\"OK\",\"code\":\"OK\",\"phone\":\"+8618232533068\"}],\"request_id\":\"771D1C9C-74AD-582E-B5EB-5FB12C038497\"}",
+  "data": 200
+}
 ```
 
-### 启动说明
-
-#### 服务端启动说明
-
-```bash
-# 进入 go-admin 后端项目
-cd ./go-admin
-
-# 编译项目
-go build
-
-# 修改配置 
-# 文件路径  go-admin/config/settings.yml
-vi ./config/setting.yml 
-
-# 1. 配置文件中修改数据库信息 
-# 注意: settings.database 下对应的配置数据
-# 2. 确认log路径
-```
-
-:::tip ⚠️注意 在windows环境如果没有安装中CGO，会出现这个问题；
-
-```bash
-E:\go-admin>go build
-# github.com/mattn/go-sqlite3
-cgo: exec /missing-cc: exec: "/missing-cc": file does not exist
-```
-
-or
-
-```bash
-D:\Code\go-admin>go build
-# github.com/mattn/go-sqlite3
-cgo: exec gcc: exec: "gcc": executable file not found in %PATH%
-```
-
-[解决cgo问题进入](https://doc.go-admin.dev/guide/other/faq.html#_5-cgo-exec-missing-cc-exec-missing-cc-file-does-not-exist)
-
-:::
-
-#### 初始化数据库，以及服务启动
-
-``` bash
-# 首次配置需要初始化数据库资源信息
-# macOS or linux 下使用
-$ ./go-admin migrate -c config/settings.dev.yml
-
-# ⚠️注意:windows 下使用
-$ go-admin.exe migrate -c config/settings.dev.yml
 
 
-# 启动项目，也可以用IDE进行调试
-# macOS or linux 下使用
-$ ./go-admin server -c config/settings.yml
+## 无、数据库设计
 
+### 5.1 短信渠道配置表
 
-# ⚠️注意:windows 下使用
-$ go-admin.exe server -c config/settings.yml
-```
+配置不同渠道商信息，如腾讯云、阿里云、七牛云等
 
-#### 使用docker 编译启动
+sms_service_provider_config (服务商配置表)
 
-```shell
-# 编译镜像
-docker build -t go-admin .
+| 字段名称          | 字段说明     | 字段类型 | 是否必填 | 备注                                             |
+| ----------------- | ------------ | -------- | -------- | ------------------------------------------------ |
+| channel_no        | 渠道商编程   | String   | 是       | Tencent、AliYun                                  |
+| provider_name     | 服务商名称   | String   | 是       | 阿里云、腾讯云                                   |
+| provider_no       | 服务商编号   | String   | 是       | Aly、txy                                         |
+| access_key_id     | 身份标识     | String   | 是       | 腾讯：SecretId                                   |
+| access_key_secret | 身份认证密钥 | String   | 是       | 腾讯：SecretKey                                  |
+| endpoint          | 调用域名     | String   | 是       |                                                  |
+| sdk_app_id        | 应用ID       | String   | 否       | 腾讯云必填                                       |
+| region            | 地域列表     | String   | 否       | 腾讯云必填：ap-beijing、ap-guangzhou、ap-nanjing |
+| remark            | 备注         | String   | 否       |                                                  |
+| ext_json          | 扩展字段     | String   | 否       |                                                  |
+| status            | 状态         | Bool     | 是       | 1启用 0 禁用                                     |
 
-# 启动容器，第一个go-admin是容器名字，第二个go-admin是镜像名称
-# -v 映射配置文件 本地路径：容器路径
-docker run --name go-admin -p 8000:8000 -v /config/settings.yml:/config/settings.yml -d go-admin-server
-```
+### 5.2 短信签名配置表
 
-#### 文档生成
+sms_sign_config(短信签名配置表)
 
-```bash
-go generate
-```
+| 字段编号      | 字段说明   | 字段类型 | 是否必填 | 备注         |
+| ------------- | ---------- | -------- | -------- | ------------ |
+| sign_name     | 签名名称   | String   | 是       |              |
+| provider_no   | 服务商编号 | String   | 是       | Aly、txy     |
+| provider_name | 服务商名称 | String   | 是       |              |
+| remark        | 备注       | String   | 否       |              |
+| ext_json      | 扩展字段   | String   | 否       |              |
+| status        | 状态       | Bool     | 是       | 1启用 0 禁用 |
 
-#### 交叉编译
+### 5.3 短信模版配置表
 
-```bash
-# windows
-env GOOS=windows GOARCH=amd64 go build main.go
+sms_template_config(短信模版配置表)
 
-# or
-# linux
-env GOOS=linux GOARCH=amd64 go build main.go
-```
+| 字段编号                | 字段说明       | 字段类型 | 是否必填 | 备注         |
+| ----------------------- | -------------- | -------- | -------- | ------------ |
+| sign_name               | 签名名称       | String   | 是       |              |
+| provider_no             | 服务商编号     | String   | 是       | Aly、txy     |
+| template_no             | 模版编号       | String   | 是       |              |
+| template_content        | 模版内容       | String   | 是       |              |
+| third_party_template_no | 第三方模版编号 | String   | 是       |              |
+| remark                  | 备注           | String   | 否       |              |
+| ext_json                | 扩展字段       | String   | 否       |              |
+| status                  | 状态           | Bool     | 是       | 1启用 0 禁用 |
 
-### UI交互端启动说明
+### 5.4 应用配置表
 
-```bash
-# 安装依赖
-npm install
+sms_app_config (应用管理配置表)
 
-# 建议不要直接使用 cnpm 安装依赖，会有各种诡异的 bug。可以通过如下操作解决 npm 下载速度慢的问题
-npm install --registry=https://registry.npm.taobao.org
+| 字段编号         | 字段说明 | 字段类型 | 是否必填 | 备注                   |
+| ---------------- | -------- | -------- | -------- | ---------------------- |
+| app_no           | 应用ID   | String   | 是       |                        |
+| app_name         | 应用名称 | String   | 是       | Aly、txy               |
+| available_number | 可用数量 | Int      | 是       | 可用短信包             |
+| current_limiting | 限流数量 | Int      | 是       | 每分钟允许发送短信数量 |
+| use_number       | 已用数量 | Int      | 是       |                        |
+| remark           | 备注     | String   | 否       |                        |
+| ext_json         | 扩展字段 | String   | 否       |                        |
+| status           | 状态     | Bool     | 是       | 1启用 0 禁用           |
 
-# 启动服务
-npm run dev
-```
+### 5.5 业务配置表
 
-## 🎬 在线体验
+sms_business_config(业务配置表)
 
-> admin / 123456
+| 字段编号      | 字段说明 | 字段类型 | 是否必填 | 备注         |
+| ------------- | -------- | -------- | -------- | ------------ |
+| app_no        | 应用ID   | String   | 是       |              |
+| business_name | 业务名称 | String   | 是       | Aly、txy     |
+| business_no   | 业务编号 | String   | 是       |              |
+| template_no   | 模版编号 | String   | 是       |              |
+| business_desc | 业务说明 | String   | 否       |              |
+| remark        | 备注     | String   | 否       |              |
+| ext_json      | 扩展字段 | String   | 否       |              |
+| status        | 状态     | Bool     | 是       | 1启用 0 禁用 |
 
-演示地址：[http://www.go-admin.dev](http://www.go-admin.dev/#/login)
+### 5.6 发送日志表
 
-## 📨 互动
+sms_send_log(发送记录表)
 
-<table>
-   <tr>
-    <td><img src="https://raw.githubusercontent.com/wenjianzhang/image/master/img/wx.png" width="180px"></td>
-    <td><img src="https://raw.githubusercontent.com/wenjianzhang/image/master/img/qq.png" width="200px"></td>
-    <td><img src="https://raw.githubusercontent.com/wenjianzhang/image/master/img/qq2.png" width="200px"></td>
-  </tr>
-  <tr>
-    <td>微信</td>
-    <td><a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=I8ZMqsExqCHpyu8SL4rbya700rBBXYLO&jump_from=webapi"><img border="0" src="//pub.idqqimg.com/wpa/images/group.png" alt="go-admin技术交流甲号" title="go-admin技术交流甲号"></a></td>
-    <td><a target="_blank" href="https://shang.qq.com/wpa/qunwpa?idkey=0f2bf59f5f2edec6a4550c364242c0641f870aa328e468c4ee4b7dbfb392627b"><img border="0" src="https://pub.idqqimg.com/wpa/images/group.png" alt="go-admin技术交流乙号" title="go-admin技术交流乙号"></a></td>
-  </tr>
-</table>
+| 字段编号     | 字段说明       | 字段类型 | 是否必填 | 备注 |
+| ------------ | -------------- | -------- | -------- | ---- |
+| app_no       | 应用ID         | String   | 是       |      |
+| business_no  | 业务编号       | String   | 是       |      |
+| status       | 状态           | Int      | 是       |      |
+| fee          | 计价条数       | Int      | 是       |      |
+| phone_number | 发送手机号     | String   | 是       |      |
+| message      | 接口响应消息   | String   | 是       |      |
+| code         | 接口响应状态码 | String   | 是       |      |
+| content      | 发送内容       | String   | 是       |      |
+| remark       | 备注           | String   | 否       |      |
+| ext_json     | 扩展字段       | String   | 否       |      |
 
-## 💎 主要成员
+## 六、技术栈
 
-<a href="https://github.com/wenjianzhang"> <img src="https://avatars.githubusercontent.com/u/3890175?s=460&u=20eac63daef81588fbac611da676b99859319251&v=4" width="80px"></a>
-<a href="https://github.com/lwnmengjing"> <img src="https://avatars.githubusercontent.com/u/12806223?s=400&u=a89272dce50100b77b4c0d5c81c718bf78ebb580&v=4" width="80px"></a>
-<a href="https://github.com/chengxiao"> <img src="https://avatars.githubusercontent.com/u/1379545?s=460&u=557da5503d0ac4a8628df6b4075b17853d5edcd9&v=4" width="80px"></a>
-<a href="https://github.com/bing127"> <img src="https://avatars.githubusercontent.com/u/31166183?s=460&u=c085bff88df10bb7676c8c0351ba9dcd031d1fb3&v=4" width="80px"></a>
+[go-admin](https://doc.go-admin.dev/)
 
-## JetBrains 开源证书支持
+[杰子学编程 (julywhj.cn)](https://julywhj.cn/)
 
-`go-admin` 项目一直以来都是在 JetBrains 公司旗下的 GoLand 集成开发环境中进行开发，基于 **free JetBrains Open Source license(s)** 正版免费授权，在此表达我的谢意。
+Mysql、Redis、
 
-<a href="https://www.jetbrains.com/?from=kubeadm-ha" target="_blank"><img src="https://raw.githubusercontent.com/panjf2000/illustrations/master/jetbrains/jetbrains-variant-4.png" width="250" align="middle"/></a>
+## 七、源码
 
-## 🤝 特别感谢
+关注公众号：杰子学编程，回复： "短信网关" 获取。
 
-1. [chengxiao](https://github.com/chengxiao)
-2. [gin](https://github.com/gin-gonic/gin)
-2. [casbin](https://github.com/casbin/casbin)
-2. [spf13/viper](https://github.com/spf13/viper)
-2. [gorm](https://github.com/jinzhu/gorm)
-2. [gin-swagger](https://github.com/swaggo/gin-swagger)
-2. [jwt-go](https://github.com/dgrijalva/jwt-go)
-2. [vue-element-admin](https://github.com/PanJiaChen/vue-element-admin)
-2. [ruoyi-vue](https://gitee.com/y_project/RuoYi-Vue)
-2. [form-generator](https://github.com/JakHuang/form-generator)
-
-## 🤟 打赏
-
-> 如果你觉得这个项目帮助到了你，你可以帮作者买一杯果汁表示鼓励 :tropical_drink:
-
-<img class="no-margin" src="https://raw.githubusercontent.com/wenjianzhang/image/master/img/pay.png"  height="200px" >
-
-## 🤝 链接
-
-[Go开发者成长线路图](http://www.golangroadmap.com/)
-
-## 🔑 License
-
-[MIT](https://github.com/go-admin-team/go-admin/blob/master/LICENSE.md)
-
-Copyright (c) 2020 wenjianzhang
+![qrcode_for_gh_5d871c6cb930_258](https://img-1258527903.cos.ap-beijing.myqcloud.com/img/qrcode_for_gh_5d871c6cb930_258.jpg)
