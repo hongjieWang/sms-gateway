@@ -9,7 +9,7 @@
         :lg="6"
         :style="{ marginBottom: '12px' }"
       >
-        <chart-card title="总发送条数" total="126560 条">
+        <chart-card title="总发送条数" :total="count">
           <el-tooltip
             slot="action"
             class="item"
@@ -27,7 +27,7 @@
               <span slot="term">日同比</span>
             </trend>
           </div>
-          <template slot="footer">日均短信条数: <span>210 条</span></template>
+          <template slot="footer">日均短信条数: <span>10 条</span></template>
         </chart-card>
       </el-col>
       <el-col
@@ -38,7 +38,7 @@
         :lg="6"
         :style="{ marginBottom: '12px' }"
       >
-        <chart-card title="成功条数" :total="8846">
+        <chart-card title="成功条数" :total="successCount">
           <el-tooltip
             slot="action"
             class="item"
@@ -64,7 +64,7 @@
         :lg="6"
         :style="{ marginBottom: '12px' }"
       >
-        <chart-card title="接口请求次数" :total="6560">
+        <chart-card title="接口请求次数" :total="requestCount">
           <el-tooltip
             slot="action"
             class="item"
@@ -123,10 +123,13 @@
         <el-tabs>
           <el-tab-pane label="发送量">
             <el-row>
-              <el-col :xl="16" :lg="12" :md="12" :sm="24" :xs="24">
+              <el-col :xl="8" :lg="8" :md="8" :sm="24" :xs="24">
+                <rank-list title="应用剩余额度" :list="rankList" />
+              </el-col>
+              <el-col :xl="16" :lg="8" :md="8" :sm="24" :xs="24">
                 <bar :list="barData" title="应用发送量排行榜" />
               </el-col>
-              <el-col :xl="8" :lg="12" :md="12" :sm="24" :xs="24">
+              <el-col :xl="8" :lg="8" :md="8" :sm="24" :xs="24">
                 <rank-list title="业务发送量排行榜" :list="rankList" />
               </el-col>
             </el-row>
@@ -145,6 +148,8 @@ import MiniBar from '@/components/MiniBar'
 import MiniProgress from '@/components/MiniProgress'
 import RankList from '@/components/RankList/index'
 import Bar from '@/components/Bar.vue'
+import { getAllCount, getSuccessCount, getRequestCount } from '@/api/dashboard'
+import { listSmsAppConfig } from '@/api/admin/sms-app-config'
 
 const barData = []
 const barData2 = []
@@ -156,14 +161,6 @@ for (let i = 0; i < 12; i += 1) {
   barData2.push({
     x: `${i + 1}月`,
     y: Math.floor(Math.random() * 1000) + 200
-  })
-}
-
-const rankList = []
-for (let i = 0; i < 7; i++) {
-  rankList.push({
-    name: '白鹭岛 ' + (i + 1) + ' 号店',
-    total: 1234.56 - i * 100
   })
 }
 
@@ -182,10 +179,47 @@ export default {
     return {
       barData,
       barData2,
-      rankList
+      rankList: [],
+      count: 0,
+      successCount: 0,
+      requestCount: 0
     }
   },
-  methods: {}
+  created() {
+    this.getAllCount()
+    this.getSuccessCount()
+    this.getRequestCount()
+    this.getAppList()
+  },
+  methods: {
+    getAllCount() {
+      getAllCount().then((res) => {
+        this.count = res.data
+      })
+    },
+
+    getSuccessCount() {
+      getSuccessCount().then((res) => {
+        this.successCount = res.data
+      })
+    },
+    getRequestCount() {
+      getRequestCount().then((res) => {
+        this.requestCount = res.data
+      })
+    },
+
+    getAppList() {
+      listSmsAppConfig({ page: 1, size: 10 }).then((resp) => {
+        resp.data.list.forEach((item) => {
+          this.rankList.push({
+            name: item.appName,
+            total: item.useNumber
+          })
+        })
+      })
+    }
+  }
 }
 </script>
 
