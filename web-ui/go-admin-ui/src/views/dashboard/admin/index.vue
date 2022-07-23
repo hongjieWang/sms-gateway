@@ -1,54 +1,113 @@
 <template>
   <div class="dashboard-editor-container">
     <el-row :gutter="12">
-      <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px' }">
-        <chart-card title="总销售额" total="￥126,560">
-          <el-tooltip slot="action" class="item" effect="dark" content="指标说明" placement="top-start">
+      <el-col
+        :sm="24"
+        :xs="24"
+        :md="6"
+        :xl="6"
+        :lg="6"
+        :style="{ marginBottom: '12px' }"
+      >
+        <chart-card title="总发送条数" total="126560 条">
+          <el-tooltip
+            slot="action"
+            class="item"
+            effect="dark"
+            content="指标说明"
+            placement="top-start"
+          >
             <i class="el-icon-warning-outline" />
           </el-tooltip>
           <div>
-            <trend flag="top" style="margin-right: 16px;" rate="12">
+            <trend flag="top" style="margin-right: 16px" rate="12">
               <span slot="term">周同比</span>
             </trend>
             <trend flag="bottom" rate="11">
               <span slot="term">日同比</span>
             </trend>
           </div>
-          <template slot="footer">日均销售额<span>￥ 234.56</span></template>
+          <template slot="footer">日均短信条数: <span>210 条</span></template>
         </chart-card>
       </el-col>
-      <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px' }">
-        <chart-card title="访问量" :total="8846">
-          <el-tooltip slot="action" class="item" effect="dark" content="指标说明" placement="top-start">
+      <el-col
+        :sm="24"
+        :xs="24"
+        :md="6"
+        :xl="6"
+        :lg="6"
+        :style="{ marginBottom: '12px' }"
+      >
+        <chart-card title="成功条数" :total="8846">
+          <el-tooltip
+            slot="action"
+            class="item"
+            effect="dark"
+            content="指标说明"
+            placement="top-start"
+          >
             <i class="el-icon-warning-outline" />
           </el-tooltip>
           <div>
             <mini-area />
           </div>
-          <template slot="footer">日访问量<span> {{ '1234' }}</span></template>
+          <template
+            slot="footer"
+          >日成功<span> {{ "200条" }}</span></template>
         </chart-card>
       </el-col>
-      <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px' }">
-        <chart-card title="支付笔数" :total="6560">
-          <el-tooltip slot="action" class="item" effect="dark" content="指标说明" placement="top-start">
+      <el-col
+        :sm="24"
+        :xs="24"
+        :md="6"
+        :xl="6"
+        :lg="6"
+        :style="{ marginBottom: '12px' }"
+      >
+        <chart-card title="接口请求次数" :total="6560">
+          <el-tooltip
+            slot="action"
+            class="item"
+            effect="dark"
+            content="指标说明"
+            placement="top-start"
+          >
             <i class="el-icon-warning-outline" />
           </el-tooltip>
           <div>
             <mini-bar />
           </div>
-          <template slot="footer">转化率 <span>60%</span></template>
+          <template slot="footer">成功率 <span>100%</span></template>
         </chart-card>
       </el-col>
-      <el-col :sm="24" :xs="24" :md="6" :xl="6" :lg="6" :style="{ marginBottom: '12px' }">
+      <el-col
+        :sm="24"
+        :xs="24"
+        :md="6"
+        :xl="6"
+        :lg="6"
+        :style="{ marginBottom: '12px' }"
+      >
         <chart-card title="运营活动效果" total="78%">
-          <el-tooltip slot="action" class="item" effect="dark" content="指标说明" placement="top-start">
+          <el-tooltip
+            slot="action"
+            class="item"
+            effect="dark"
+            content="指标说明"
+            placement="top-start"
+          >
             <i class="el-icon-warning-outline" />
           </el-tooltip>
           <div>
-            <mini-progress color="rgb(19, 194, 194)" :target="80" :percentage="78" height="8px" />
+            <mini-progress
+              color="rgb(19, 194, 194)"
+              :target="80"
+              :percentage="78"
+              height="8px"
+            />
           </div>
           <template slot="footer">
-            <trend flag="top" style="margin-right: 16px;" rate="12">
+            <trend flag="top" style="margin-right: 16px" rate="12">
               <span slot="term">同周比</span>
             </trend>
             <trend flag="bottom" rate="80">
@@ -59,33 +118,22 @@
       </el-col>
     </el-row>
 
-    <el-card :bordered="false" :body-style="{padding: '0'}">
+    <el-card :bordered="false" :body-style="{ padding: '0' }">
       <div class="salesCard">
         <el-tabs>
-          <el-tab-pane label="销售额">
+          <el-tab-pane label="发送量">
             <el-row>
               <el-col :xl="16" :lg="12" :md="12" :sm="24" :xs="24">
-                <bar :list="barData" title="销售额排行" />
+                <bar :list="barData" title="应用发送量排行榜" />
               </el-col>
               <el-col :xl="8" :lg="12" :md="12" :sm="24" :xs="24">
-                <rank-list title="门店销售排行榜" :list="rankList" />
-              </el-col>
-            </el-row>
-          </el-tab-pane>
-          <el-tab-pane label="访问量">
-            <el-row>
-              <el-col :xl="16" :lg="12" :md="12" :sm="24" :xs="24">
-                <bar :list="barData2" title="销售额趋势" />
-              </el-col>
-              <el-col :xl="8" :lg="12" :md="12" :sm="24" :xs="24">
-                <rank-list title="门店销售排行榜" :list="rankList" />
+                <rank-list title="业务发送量排行榜" :list="rankList" />
               </el-col>
             </el-row>
           </el-tab-pane>
         </el-tabs>
       </div>
     </el-card>
-
   </div>
 </template>
 
@@ -137,8 +185,7 @@ export default {
       rankList
     }
   },
-  methods: {
-  }
+  methods: {}
 }
 </script>
 
@@ -162,13 +209,13 @@ export default {
   }
 }
 
-::v-deep .el-tabs__item{
-   padding-left: 16px!important;
-   height: 50px;
-   line-height: 50px;
+::v-deep .el-tabs__item {
+  padding-left: 16px !important;
+  height: 50px;
+  line-height: 50px;
 }
 
-@media (max-width:1024px) {
+@media (max-width: 1024px) {
   .chart-wrapper {
     padding: 8px;
   }
