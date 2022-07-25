@@ -8,7 +8,6 @@ require (
 	github.com/alibabacloud-go/darabonba-openapi v0.1.18
 	github.com/alibabacloud-go/dysmsapi-20170525/v2 v2.0.16
 	github.com/alibabacloud-go/tea v1.1.17
-	github.com/alibabacloud-go/tea-utils v1.4.5
 	github.com/aliyun/aliyun-oss-go-sdk v0.0.0-20190307165228-86c17b95fcd5
 	github.com/bitly/go-simplejson v0.5.0
 	github.com/bytedance/go-tagexpr/v2 v2.7.12
@@ -19,6 +18,7 @@ require (
 	github.com/google/uuid v1.2.0
 	github.com/huaweicloud/huaweicloud-sdk-go-obs v3.21.12+incompatible
 	github.com/mssola/user_agent v0.5.2
+	github.com/nacos-group/nacos-sdk-go v1.1.1
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/prometheus/client_golang v1.11.0
 	github.com/qiniu/go-sdk/v7 v7.11.1

@@ -17,10 +17,10 @@ import (
 	"github.com/go-admin-team/go-admin-core/sdk/pkg"
 	"github.com/go-admin-team/go-admin-core/sdk/runtime"
 	"github.com/spf13/cobra"
-
 	"go-admin/app/admin/models"
 	"go-admin/app/admin/router"
 	"go-admin/app/jobs"
+	"go-admin/cmd/naming"
 	"go-admin/common/database"
 	"go-admin/common/global"
 	common "go-admin/common/middleware"
@@ -90,11 +90,22 @@ func run() error {
 		Addr:    fmt.Sprintf("%s:%d", config.ApplicationConfig.Host, config.ApplicationConfig.Port),
 		Handler: sdk.Runtime.GetEngine(),
 	}
+	server := naming.DefaultService{
+		Id:        config.ApplicationConfig.Name,
+		Name:      config.ApplicationConfig.Name,
+		Address:   pkg.GetLocaHonst(),
+		Port:      config.ApplicationConfig.Port,
+		Namespace: "dev",
+		Group:     "dev",
+	}
+	newNaming, err := naming.NewNaming("192.168.1.15", 8848, "dev")
+	err = newNaming.Register(server)
+	if err != nil {
+	}
 
 	go func() {
 		jobs.InitJob()
 		jobs.Setup(sdk.Runtime.GetDb())
-
 	}()
 
 	if apiCheck {
