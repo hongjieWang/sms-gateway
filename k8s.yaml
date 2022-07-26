@@ -17,7 +17,7 @@ spec:
       containers:
         - name: sms-gateway
           imagePullPolicy: Always
-          image: wellyspring.tencentcloudcr.com/jdd/sms-gateway:v1.3
+          image: wellyspring.tencentcloudcr.com/jdd/new-jdd-sms-gateway:latest
           resources:
             requests:
               memory: 2048Mi
