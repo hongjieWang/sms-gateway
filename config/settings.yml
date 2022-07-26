@@ -5,7 +5,7 @@ settings:
     # 服务器ip，默认使用 0.0.0.0
     host: 0.0.0.0
     # 服务名称
-    name: careerGuidance
+    name: sms-gateway
     # 端口号
     port: 8000 # 服务端口号
     readtimeout: 1
