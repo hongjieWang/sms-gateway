@@ -20,11 +20,11 @@ spec:
           image: wellyspring.tencentcloudcr.com/jdd/new-jdd-sms-gateway:latest
           resources:
             requests:
-              memory: 2048Mi
-              cpu: 1000m
+              memory: 1024Mi
+              cpu: 500m
             limits:
-              memory: 2048Mi
-              cpu: 1000m
+              memory: 1024Mi
+              cpu: 500m
           ports:
             - name: http-port
               containerPort: 3000
