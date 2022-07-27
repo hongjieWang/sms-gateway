@@ -21,6 +21,8 @@ COPY --from=builder /go/release/go-admin /
 
 COPY --from=builder /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
+COPY config/settings.yml /config/settings.yml
+
 EXPOSE 8000
 
 CMD ["/go-admin","server","-c", "/config/settings.yml"]

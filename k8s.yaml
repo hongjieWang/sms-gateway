@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sms-gateway
+spec:
+  selector:
+    matchLabels:
+      app: sms-gateway
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: sms-gateway
+    spec:
+      imagePullSecrets:
+        - name: jdd-cloud
+      containers:
+        - name: sms-gateway
+          imagePullPolicy: Always
+          image: wellyspring.tencentcloudcr.com/jdd/new-jdd-sms-gateway:latest
+          resources:
+            requests:
+              memory: 1024Mi
+              cpu: 500m
+            limits:
+              memory: 1024Mi
+              cpu: 500m
+          ports:
+            - name: http-port
+              containerPort: 3000
+          volumeMounts:
+            - name: business-log
+              mountPath: /home/yaoll/logs
+      volumes:
+        - name: business-log
+          emptyDir: { }
+---
+#service
+apiVersion: v1
+kind: Service
+metadata:
+  name: sms-gateway
+spec:
+  selector:
+    app: sms-gateway
+  ports:
+    - port: 3000
+      protocol: TCP
+      targetPort: 3000
+  type: ClusterIP

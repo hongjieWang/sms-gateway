@@ -11,13 +11,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/config/source/file"
+	"github.com/go-admin-team/go-admin-core/config/source/nacos"
 	"github.com/go-admin-team/go-admin-core/sdk"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/go-admin-team/go-admin-core/sdk/config"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg"
 	"github.com/go-admin-team/go-admin-core/sdk/runtime"
+	"github.com/go-admin-team/go-admin-core/tools/naming"
 	"github.com/spf13/cobra"
-
 	"go-admin/app/admin/models"
 	"go-admin/app/admin/router"
 	"go-admin/app/jobs"
@@ -62,6 +63,10 @@ func setup() {
 	//1. 读取配置
 	config.Setup(
 		file.NewSource(file.WithPath(configYml)),
+	)
+	//2.读取nacos配置文件
+	config.Setup(
+		nacos.NewSource(config.NacosConfig.Host, config.NacosConfig.Port, config.NacosConfig.NameSpace, config.NacosConfig.Group, config.NacosConfig.DataId),
 		database.Setup,
 		storage.Setup,
 	)
@@ -90,13 +95,28 @@ func run() error {
 		Addr:    fmt.Sprintf("%s:%d", config.ApplicationConfig.Host, config.ApplicationConfig.Port),
 		Handler: sdk.Runtime.GetEngine(),
 	}
+	//将服务注册到nacos
+	server := naming.DefaultService{
+		Id:        config.ApplicationConfig.Name,
+		Name:      config.ApplicationConfig.Name,
+		Address:   pkg.GetLocaHonst(),
+		Port:      config.ApplicationConfig.Port,
+		Namespace: config.NacosConfig.NameSpace,
+		Group:     config.NacosConfig.Group,
+	}
+	newNaming, err := naming.NewNaming(config.NacosConfig.Host, config.NacosConfig.Port, config.NacosConfig.NameSpace)
 
+	getConfig, err := newNaming.GetConfig(config.NacosConfig.Group, config.ApplicationConfig.Name)
+
+	fmt.Println(getConfig)
+
+	err = newNaming.Register(server)
+	if err != nil {
+	}
 	go func() {
 		jobs.InitJob()
 		jobs.Setup(sdk.Runtime.GetDb())
-
 	}()
-
 	if apiCheck {
 		var routers = sdk.Runtime.GetRouter()
 		q := sdk.Runtime.GetMemoryQueue("")

@@ -1,6 +1,6 @@
 <template>
   <div class="login-container">
-    <div id="particles-js">
+    <div id="particles-js" class="my_login">
       <!-- <vue-particles
         v-if="refreshParticles"
         color="#dedede"
@@ -24,8 +24,13 @@
     <div class="login-weaper animated bounceInDown">
       <div class="login-left">
         <div class="login-time" v-text="currentTime" />
-        <img :src="sysInfo.sys_app_logo" alt="" class="img">
-        <p class="title" v-text="sysInfo.sys_app_name" />
+        <img :src="sysInfo.sys_app_logo" alt="杰子学编程" class="img">
+        <p />
+        <a
+          class="title"
+          href="https://julywhj.cn"
+          v-text="sysInfo.sys_app_name"
+        />
       </div>
       <div class="login-border">
         <div class="login-main">
@@ -152,9 +157,12 @@
       style="visibility: visible; width: 100%"
     >
       <div class="s-bottom-layer-content">
-
         <div class="lh">
-          <a class="text-color" href="https://beian.miit.gov.cn" target="_blank">
+          <a
+            class="text-color"
+            href="https://beian.miit.gov.cn"
+            target="_blank"
+          >
             沪ICP备XXXXXXXXX号-1
           </a>
         </div>
@@ -458,10 +466,9 @@ $cursor: #fff;
   }
 }
 .footer {
-  background-color: #0e6cff;
+  background: #0e6cff;
   margin-bottom: -20px;
 }
-
 .login-container {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -472,8 +479,32 @@ $cursor: #fff;
   width: 100%;
   height: 100%;
   margin: 0 auto;
-  background: url("../../assets/login.png") no-repeat;
-  background-color: #0e6cff;
+  background: linear-gradient(235deg, #ffffff 0%, #000f25 100%),
+    linear-gradient(180deg, #6100ff 0%, #000000 100%),
+    linear-gradient(
+      235deg,
+      #ffa3ac 0%,
+      #ffa3ac 40%,
+      #00043c calc(40% + 1px),
+      #00043c 60%,
+      #005d6c calc(60% + 1px),
+      #005d6c 70%,
+      #00c9b1 calc(70% + 1px),
+      #00c9b1 100%
+    ),
+    linear-gradient(
+      125deg,
+      #ffa3ac 0%,
+      #ffa3ac 40%,
+      #00043c calc(40% + 1px),
+      #00043c 60%,
+      #005d6c calc(60% + 1px),
+      #005d6c 70%,
+      #00c9b1 calc(70% + 1px),
+      #00c9b1 100%
+    );
+  background-blend-mode: soft-light, screen, darken, normal;
+
   position: relative;
   background-size: cover;
   height: 100vh;
@@ -540,7 +571,7 @@ $cursor: #fff;
   text-align: center;
   color: #fff;
   letter-spacing: 2px;
-  font-size: 16px;
+  font-size: 26px;
   font-weight: 600;
 }
 
